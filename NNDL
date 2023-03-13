@@ -1,0 +1,71 @@
+!pip install torch torchvision
+import torch
+from torch.utils.data import DataLoader
+from torchvision.transforms import transforms
+import os
+import trimesh
+!pip install trimesh
+
+---
+
+
+!wget http://vision.princeton.edu/projects/2014/3DShapeNets/ModelNet10.zip
+!unzip ModelNet10.zip
+---
+
+class ModelNet10Dataset(torch.utils.data.Dataset):
+    def __init__(self, root, split='train', transform=None):
+        self.root = root
+        self.split = split
+        self.transform = transform
+
+        # Get list of object categories
+        categories = os.listdir(os.path.join(root, split))
+        self.categories = sorted(categories)
+
+        # Create mapping from category to label
+        self.category_to_label = {category: i for i, category in enumerate(self.categories)}
+
+        # Load list of object files for each category
+        self.files = []
+        for category in self.categories:
+            category_dir = os.path.join(root, split, category)
+            filepaths = [os.path.join(category_dir, f) for f in os.listdir(category_dir) if f.endswith('.off')]
+            self.files.extend([(filepath, self.category_to_label[category]) for filepath in filepaths])
+
+    def __getitem__(self, index):
+        filepath, label = self.files[index]
+        mesh = trimesh.load(filepath)
+        if self.transform:
+            mesh = self.transform(mesh)
+        return mesh, label
+
+    def __len__(self):
+        return len(self.files)
+        
+        
+  -----      
+        
+        
+batch_size = 32
+train_transform = transforms.Compose([transforms.RandomRotation(30),
+                                      transforms.RandomHorizontalFlip(),
+                                      transforms.ToTensor()])
+test_transform = transforms.Compose([transforms.ToTensor()])
+
+train_dataset = ModelNet10Dataset(root='ModelNet10', split='train', transform=train_transform)
+test_dataset = ModelNet10Dataset(root='ModelNet10', split='test', transform=test_transform)
+
+train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
+test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=4)
+
+------
+
+import torch.nn as nn
+import torch.nn.functional as F
+
+class ModelNet10Model(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.conv1 = nn.Conv1d(3, 32, kernel_size=3, stride=1,
+
