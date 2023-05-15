@@ -1,0 +1,24 @@
+Download images from here:
+https://www.kaggle.com/datasets/abhinavnayak/catsvdogs-transformed
+
+And generate csv file with this code:
+
+import csv
+
+# Define the file names and labels for cats and dogs
+cats = [('cat' + str(i) + '.jpg', 0) for i in range(1,1001)]
+dogs = [('dog' + str(i) + '.jpg', 1) for i in range(1,1001)]
+
+# Combine the lists of cats and dogs
+images = cats + dogs
+
+# Open a new CSV file for writing
+with open('image_labels.csv', 'w', newline='') as file:
+    writer = csv.writer(file)
+
+    # Write the header row
+    writer.writerow(['file_name', 'label'])
+
+    # Write the data rows
+    for row in images:
+        writer.writerow(row)
