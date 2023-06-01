@@ -1,0 +1,28 @@
+# Please mind the file format and size
+import os
+from PIL import Image
+import torchvision.transforms as transforms
+
+# Specify input and output directories
+input_dir = 'train'
+output_dir = 'resizedImages'
+target_size = (64, 64)  # Specify the desired size for the images
+
+# Create the output directory if it doesn't exist
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
+
+# Iterate over the input images
+for filename in os.listdir(input_dir):
+    if filename.endswith('.JPEG') or filename.endswith('.png') or filename.endswith('.jpg'):
+        # Load the image
+        image_path = os.path.join(input_dir, filename)
+        image = Image.open(image_path)
+
+        # Resize the image
+        transform = transforms.Resize(target_size)
+        resized_image = transform(image)
+
+        # Save the resized image
+        output_path = os.path.join(output_dir, filename)
+        resized_image.save(output_path)
